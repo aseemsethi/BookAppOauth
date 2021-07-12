@@ -13,14 +13,22 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aseemsethi.bookappoauth.R;
+
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 public class securityFragment extends Fragment {
 
     private PageViewModel pageViewModel;
     final String TAG = "BookAppOauth: Sec";
+    MqttHelper mqttHelper;
+    View root;
 
     public static securityFragment newInstance(int index) {
         return new securityFragment();
@@ -38,7 +46,44 @@ public class securityFragment extends Fragment {
                         Toast.LENGTH_LONG).show();
             }
         });
-        return inflater.inflate(R.layout.security_fragment, container, false);
+        try {
+            startMqtt();
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+        root = inflater.inflate(R.layout.security_fragment, container, false);
+        return root;
+    }
+
+    private void startMqtt() throws MqttException {
+        mqttHelper = new MqttHelper(getActivity().getApplicationContext());
+        mqttHelper.mqttAndroidClient.setCallback(new MqttCallback() {
+            @Override
+            public void connectionLost(Throwable throwable) {
+
+            }
+
+            @Override
+            public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+                String msg = mqttMessage.toString();
+                Log.d(TAG, "11 MQTT Msg recvd: " + msg);
+                String[] arrOfStr = msg.split(":", 4);
+                Log.d(TAG, "MQTT Msg recvd:" + arrOfStr[0] + " : " + arrOfStr[1]);
+                if ((arrOfStr[1].trim()).equals("4ffe1a")) {
+                    Log.d(TAG, "MQTT Msg recvd from: 4ffe1a");
+                    TextView v1 = (TextView) root.findViewById(R.id.sensorValue1);
+                    v1.setText(arrOfStr[2]);
+                } else if ((arrOfStr[1].trim()).equals("f6e01a")) {
+                    Log.d(TAG, "MQTT Msg recvd from: f6e01a");
+                    TextView v1 = (TextView) root.findViewById(R.id.sensorValue2);
+                    v1.setText(arrOfStr[2]);
+                }
+            }
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
+                Log.d(TAG, "msg delivered");
+            }
+        });
     }
 
     @Override

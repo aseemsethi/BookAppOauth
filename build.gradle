@@ -16,6 +16,9 @@ buildscript {
 allprojects {
     repositories {
         google()
+        maven {
+            url "https://repo.eclipse.org/content/repositories/paho-snapshots/"
+        }
         mavenCentral()
         jcenter() // Warning: this repository is going to shut down soon
     }
