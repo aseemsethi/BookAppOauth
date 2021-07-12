@@ -1,5 +1,7 @@
 package com.aseemsethi.bookappoauth;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 
 import com.google.android.material.tabs.TabLayout;
@@ -26,5 +28,11 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setAdapter(sectionsPagerAdapter);
         TabLayout tabs = binding.tabs;
         tabs.setupWithViewPager(viewPager);
+        //startService(new Intent(this,MqttService.class));
+        Context context = getApplicationContext();
+        Intent serviceIntent = new Intent(context, MqttService.class);
+        serviceIntent.setAction(MqttService.MQTTSUBSCRIBE_ACTION);
+        serviceIntent.putExtra("topic", "aseemsethi");
+        startService(serviceIntent);
     }
 }
