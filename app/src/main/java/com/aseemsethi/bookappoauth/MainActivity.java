@@ -30,7 +30,8 @@ public class MainActivity extends AppCompatActivity {
         tabs.setupWithViewPager(viewPager);
         //startService(new Intent(this,MqttService.class));
         Context context = getApplicationContext();
-        Intent serviceIntent = new Intent(context, MqttService.class);
+        Intent serviceIntent = new Intent(context,
+                com.aseemsethi.bookappoauth.MqttService.class);
         serviceIntent.setAction(MqttService.MQTTSUBSCRIBE_ACTION);
         serviceIntent.putExtra("topic", "aseemsethi");
         startService(serviceIntent);

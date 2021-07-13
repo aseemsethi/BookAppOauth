@@ -64,6 +64,22 @@ public class MqttService extends Service {
         } catch (MqttException e) {
             e.printStackTrace();
         }
+
+        // The following "startForeground" with a notification is what makes
+        // the service run in the background and not get killed, when the app gets
+        // killed by the user.
+        intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        Notification noti = new Notification.Builder(this, "default")
+                .setContentTitle("MQTT:")
+                .setContentText("Background")
+                .setSmallIcon(R.drawable.ic_launcher_background)
+                .setContentIntent(pendingIntent)
+                .setSound(defaultSoundUri)
+                .build();
+        startForeground(1, noti);  // this is the noti that is shown when running in background
         return START_STICKY;
     }
 
@@ -87,7 +103,7 @@ public class MqttService extends Service {
                 .setContentIntent(pendingIntent)
                 .setSound(defaultSoundUri)
                 .build();
-        mNotificationManager.notify(0, noti);
+        mNotificationManager.notify(1, noti);
     }
 
     private void startMqtt() throws MqttException {
