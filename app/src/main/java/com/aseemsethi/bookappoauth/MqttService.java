@@ -119,19 +119,21 @@ public class MqttService extends Service {
             @Override
             public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
                 String msg = mqttMessage.toString();
-                Log.d(TAG, "MQTT Msg recvd: " + msg);
+                //Log.d(TAG, "MQTT Msg recvd: " + msg);
                 String[] arrOfStr = msg.split(":", 4);
-                Log.d(TAG, "MQTT Msg recvd:" + arrOfStr[0] + " : " + arrOfStr[1]);
+                Log.d(TAG, "MQTT Msg recvd:" + arrOfStr[0] + " : " + arrOfStr[1] +
+                        " : " + arrOfStr[2]);
+                sendNotification(msg);
                 if ((arrOfStr[1].trim()).equals("4ffe1a")) {
-                    Log.d(TAG, "MQTT Msg recvd from: 4ffe1a");
+                    //Log.d(TAG, "MQTT Msg recvd from: 4ffe1a");
                     //TextView v1 = (TextView) root.findViewById(R.id.sensorValue1);
                     //v1.setText(arrOfStr[2]);
-                    sendNotification(msg);
+                    //sendNotification(msg);
                 } else if ((arrOfStr[1].trim()).equals("f6e01a")) {
-                    Log.d(TAG, "MQTT Msg recvd from: f6e01a");
+                    //Log.d(TAG, "MQTT Msg recvd from: f6e01a");
                     //TextView v1 = (TextView) root.findViewById(R.id.sensorValue2);
                     //v1.setText(arrOfStr[2]);
-                    sendNotification(msg);
+                    //sendNotification(msg);
                 }
             }
             @Override
