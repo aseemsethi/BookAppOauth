@@ -13,7 +13,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
@@ -25,7 +24,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-public class MqttService extends Service {
+public class myMqttService extends Service {
     final String TAG = "BookAppOauth: MQTT";
     String CHANNEL_ID = "default";
     NotificationManager mNotificationManager;
@@ -34,7 +33,7 @@ public class MqttService extends Service {
     MqttHelper mqttHelper;
     final static String MQTTSUBSCRIBE_ACTION = "MQTTSUBSCRIBE_ACTION";
 
-    public MqttService() {
+    public myMqttService() {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -112,7 +111,8 @@ public class MqttService extends Service {
         mqttHelper.mqttAndroidClient.setCallback(new MqttCallback() {
             @Override
             public void connectionLost(Throwable throwable) {
-
+                Log.d(TAG, "MQTT connection lost !!");
+                onTaskRemoved(null);
             }
 
             @RequiresApi(api = Build.VERSION_CODES.O)
@@ -142,6 +142,7 @@ public class MqttService extends Service {
             }
         });
     }
+
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         Log.d(TAG, "Mqtt Service task removed");
@@ -150,8 +151,8 @@ public class MqttService extends Service {
         //startService(restartServiceIntent);
 
         Context context = getApplicationContext();
-        Intent serviceIntent = new Intent(context, MqttService.class);
-        serviceIntent.setAction(MqttService.MQTTSUBSCRIBE_ACTION);
+        Intent serviceIntent = new Intent(context, myMqttService.class);
+        serviceIntent.setAction(myMqttService.MQTTSUBSCRIBE_ACTION);
         serviceIntent.putExtra("topic", "aseemsethi");
         startService(serviceIntent);
 

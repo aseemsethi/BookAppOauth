@@ -31,8 +31,8 @@ public class MainActivity extends AppCompatActivity {
         //startService(new Intent(this,MqttService.class));
         Context context = getApplicationContext();
         Intent serviceIntent = new Intent(context,
-                com.aseemsethi.bookappoauth.MqttService.class);
-        serviceIntent.setAction(MqttService.MQTTSUBSCRIBE_ACTION);
+                myMqttService.class);
+        serviceIntent.setAction(myMqttService.MQTTSUBSCRIBE_ACTION);
         serviceIntent.putExtra("topic", "aseemsethi");
         startService(serviceIntent);
     }

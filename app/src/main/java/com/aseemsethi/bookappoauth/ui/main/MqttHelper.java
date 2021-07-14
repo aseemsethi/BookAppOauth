@@ -34,7 +34,7 @@ import java.util.UUID;
             mqttAndroidClient.setCallback(new MqttCallback() {
                 @Override
                 public void connectionLost(Throwable throwable) {
-                    Log.d(TAG, "connection lost");
+                    Log.d(TAG, "MQTT connection lost");
                 }
 
                 @Override
