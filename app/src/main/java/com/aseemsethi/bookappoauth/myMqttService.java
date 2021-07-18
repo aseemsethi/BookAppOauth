@@ -1,5 +1,6 @@
 package com.aseemsethi.bookappoauth;
 
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -13,6 +14,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
@@ -24,6 +26,20 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.util.Calendar;
+
+import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE;
+import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC;
+
+/*
+In manifest file, ensure that the service name starts with lower case -
+If the name assigned to this attribute begins with a colon (':'), a new process,
+private to the application, is created when it's needed and the service runs in
+that process. If the process name begins with a lowercase character, the service
+will run in a global process of that name, provided that it has permission to
+do so. This allows components in different applications to share a process,
+reducing resource usage.
+*/
 public class myMqttService extends Service {
     final String TAG = "BookAppOauth: MQTT";
     String CHANNEL_ID = "default";
@@ -32,15 +48,26 @@ public class myMqttService extends Service {
     int counter = 1;
     MqttHelper mqttHelper;
     final static String MQTTSUBSCRIBE_ACTION = "MQTTSUBSCRIBE_ACTION";
+    boolean running = false;
 
     public myMqttService() {
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId){
         String action=null;
-        Log.d(TAG, "Started mqttService");
+        Log.d(TAG, "onStartCommand mqttService");
         if (intent == null) {
             Log.d(TAG, "Intent is null..possible due to app restart");
             //action = MQTTMSG_ACTION;
@@ -49,8 +76,8 @@ public class myMqttService extends Service {
         Log.d(TAG,"ACTION: " + action);
 
         //onTaskRemoved(intent);
-        Toast.makeText(getApplicationContext(),"MQTT Service in Background",
-                Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getApplicationContext(),"MQTT Service in Background",
+        //        Toast.LENGTH_SHORT).show();
         mNotificationManager = (NotificationManager)this.getSystemService(Context.NOTIFICATION_SERVICE);
         NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID,
                 "my_channel",
@@ -58,11 +85,23 @@ public class myMqttService extends Service {
         mChannel.enableLights(true);
         mChannel.setLightColor(Color.RED);
         mNotificationManager.createNotificationChannel(mChannel);
-        try {
-            startMqtt();
-        } catch (MqttException e) {
-            e.printStackTrace();
+        if (running == true) {
+            Log.d(TAG, "MQTT Service is already running");
+            mqttHelper.subscribeToTopic("aseemsethi");
+            //mqttHelper.connect();
         }
+        if ((running == true) && mqttHelper.isConnected()) {
+            Log.d(TAG, "MQTT Service is already connected");
+            return START_STICKY;
+        }
+            Log.d(TAG, "MQTT Service is NOT running");
+            try {
+                startMqtt();
+                running = true;
+            } catch (MqttException e) {
+                e.printStackTrace();
+            }
+
 
         // The following "startForeground" with a notification is what makes
         // the service run in the background and not get killed, when the app gets
@@ -73,12 +112,15 @@ public class myMqttService extends Service {
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         Notification noti = new Notification.Builder(this, "default")
                 .setContentTitle("MQTT:")
-                .setContentText("Background")
+                .setContentText("Starting: " + Calendar.getInstance().getTime())
                 .setSmallIcon(R.drawable.ic_launcher_background)
                 .setContentIntent(pendingIntent)
-                .setSound(defaultSoundUri)
+                //.setSound(defaultSoundUri)
                 .build();
-        startForeground(1, noti);  // this is the noti that is shown when running in background
+        startForeground(1, noti,
+                FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE|
+                        FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+        // this is the noti that is shown when running in background
         return START_STICKY;
     }
 
@@ -86,8 +128,9 @@ public class myMqttService extends Service {
     private void sendNotification(String msg) {
         Log.d(TAG, "Send Notification...");
         String[] arrOfStr = msg.split(":", 4);
-        String title = arrOfStr[1].trim();
-        String body = arrOfStr[2].trim();
+        String title = arrOfStr[0].trim();
+        String body = arrOfStr[1].trim() + ":" + arrOfStr[2].trim() +
+                " : " + arrOfStr[3].trim();
 
         // Create an explicit intent for an Activity in your app
         Intent intent = new Intent(this, MainActivity.class);
@@ -96,7 +139,7 @@ public class myMqttService extends Service {
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         Notification noti = new Notification.Builder(this, "default")
-                .setContentTitle(title + ":" + counter)
+                .setContentTitle(title + " : ")
                 .setContentText(body)
                 .setSmallIcon(R.drawable.ic_launcher_background)
                 .setContentIntent(pendingIntent)
@@ -119,10 +162,10 @@ public class myMqttService extends Service {
             @Override
             public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
                 String msg = mqttMessage.toString();
-                //Log.d(TAG, "MQTT Msg recvd: " + msg);
+                Log.d(TAG, "MQTT Msg recvd: " + msg);
                 String[] arrOfStr = msg.split(":", 4);
-                Log.d(TAG, "MQTT Msg recvd:" + arrOfStr[0] + " : " + arrOfStr[1] +
-                        " : " + arrOfStr[2]);
+                //Log.d(TAG, "MQTT Msg recvd:" + arrOfStr[0] + " : " + arrOfStr[1] +
+                //        " : " + arrOfStr[2]);
                 sendNotification(msg);
                 if ((arrOfStr[1].trim()).equals("4ffe1a")) {
                     //Log.d(TAG, "MQTT Msg recvd from: 4ffe1a");
@@ -146,22 +189,27 @@ public class myMqttService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         Log.d(TAG, "Mqtt Service task removed");
-        //Intent restartServiceIntent = new Intent(getApplicationContext(),this.getClass());
-        //restartServiceIntent.setPackage(getPackageName());
-        //startService(restartServiceIntent);
-
+        super.onTaskRemoved(rootIntent);
+        running = false;
+        sendBroadcast(new Intent("RestartMqtt"));
+/*
         Context context = getApplicationContext();
         Intent serviceIntent = new Intent(context, myMqttService.class);
         serviceIntent.setAction(myMqttService.MQTTSUBSCRIBE_ACTION);
         serviceIntent.putExtra("topic", "aseemsethi");
-        startService(serviceIntent);
-
-        super.onTaskRemoved(rootIntent);
+        startService(serviceIntent); */
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
+    }
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "Mqtt Service task destroyed");
+        running = false;
+        sendBroadcast(new Intent("RestartMqtt"));
+        // The service is no longer used and is being destroyed
     }
 }

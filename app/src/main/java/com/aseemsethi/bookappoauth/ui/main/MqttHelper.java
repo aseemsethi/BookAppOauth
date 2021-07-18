@@ -21,16 +21,18 @@ import java.util.UUID;
      */
     public class MqttHelper {
         public MqttAndroidClient mqttAndroidClient;
-        final String TAG = "ESP32IOT MQTT Helper";
+        final String TAG = "BookApp MQTT Helper";
 
         //final String serverUri = "tcp://broker.hivemq.com:1883";
         final String serverUri = "tcp://mqtt.eclipseprojects.io:1883";
 
-        final String clientId = UUID.randomUUID().toString(); // "ESP32Dev";
+        final String clientId = UUID.randomUUID().toString();
+        //final String clientId = "ESP32Dev";
         final String subscriptionTopic = "aseemsethi";
 
         public MqttHelper(Context context){
             mqttAndroidClient = new MqttAndroidClient(context, serverUri, clientId);
+            Log.d(TAG, "MqttHelper Constructor: " + clientId);
             mqttAndroidClient.setCallback(new MqttCallback() {
                 @Override
                 public void connectionLost(Throwable throwable) {
@@ -50,12 +52,21 @@ import java.util.UUID;
             connect();
         }
 
-        private void connect(){
+        public boolean isConnected() {
+            if (mqttAndroidClient.isConnected() == true) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        public void connect(){
             MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
             mqttConnectOptions.setCleanSession(true); // was false
             // If we dont set the keepalive to 0, then MQTT stops with error
             // unregister alarmreceiver to mqttservice
-            mqttConnectOptions.setKeepAliveInterval(0);
+            mqttConnectOptions.setKeepAliveInterval(30);
+            mqttConnectOptions.setConnectionTimeout(0);
             try {
                 mqttAndroidClient.connect(mqttConnectOptions, null, new IMqttActionListener() {
                     @Override
