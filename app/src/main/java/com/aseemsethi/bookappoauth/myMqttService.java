@@ -81,13 +81,15 @@ public class myMqttService extends Service {
         mNotificationManager = (NotificationManager)this.getSystemService(Context.NOTIFICATION_SERVICE);
         NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID,
                 "my_channel",
-                NotificationManager.IMPORTANCE_HIGH);
+                NotificationManager.IMPORTANCE_LOW);
         mChannel.enableLights(true);
         mChannel.setLightColor(Color.RED);
+        mChannel.setSound(null,null);
+        mChannel.setVibrationPattern(new long[] { 0, 400, 200, 400});
         mNotificationManager.createNotificationChannel(mChannel);
         if (running == true) {
             Log.d(TAG, "MQTT Service is already running");
-            mqttHelper.subscribeToTopic("aseemsethi");
+            //mqttHelper.subscribeToTopic("aseemsethi");
             //mqttHelper.connect();
         }
         if ((running == true) && mqttHelper.isConnected()) {
@@ -115,7 +117,8 @@ public class myMqttService extends Service {
                 .setContentText("Starting: " + Calendar.getInstance().getTime())
                 .setSmallIcon(R.drawable.ic_launcher_background)
                 .setContentIntent(pendingIntent)
-                //.setSound(defaultSoundUri)
+                .setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 })
+        //.setSound(defaultSoundUri)
                 .build();
         startForeground(1, noti,
                 FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE|
@@ -136,14 +139,15 @@ public class myMqttService extends Service {
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-        Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        //Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         Notification noti = new Notification.Builder(this, "default")
                 .setContentTitle(title + " : ")
                 .setContentText(body)
                 .setSmallIcon(R.drawable.ic_launcher_background)
                 .setContentIntent(pendingIntent)
-                .setSound(defaultSoundUri)
+                .setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 })
+                //.setSound(defaultSoundUri)
                 .build();
         mNotificationManager.notify(1, noti);
     }
@@ -155,7 +159,7 @@ public class myMqttService extends Service {
             @Override
             public void connectionLost(Throwable throwable) {
                 Log.d(TAG, "MQTT connection lost !!");
-                onTaskRemoved(null);
+                //onTaskRemoved(null);
             }
 
             @RequiresApi(api = Build.VERSION_CODES.O)

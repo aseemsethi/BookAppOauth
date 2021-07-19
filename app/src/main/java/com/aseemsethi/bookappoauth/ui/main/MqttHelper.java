@@ -65,7 +65,7 @@ import java.util.UUID;
             mqttConnectOptions.setCleanSession(true); // was false
             // If we dont set the keepalive to 0, then MQTT stops with error
             // unregister alarmreceiver to mqttservice
-            mqttConnectOptions.setKeepAliveInterval(30);
+            mqttConnectOptions.setKeepAliveInterval(20);
             mqttConnectOptions.setConnectionTimeout(0);
             try {
                 mqttAndroidClient.connect(mqttConnectOptions, null, new IMqttActionListener() {
