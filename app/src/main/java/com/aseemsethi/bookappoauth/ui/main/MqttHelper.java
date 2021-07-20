@@ -16,7 +16,11 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.util.UUID;
-    /**
+import java.util.concurrent.TimeUnit;
+
+import static java.lang.Thread.sleep;
+
+/**
      * Created by wildan on 3/19/2017.
      */
     public class MqttHelper {
@@ -78,6 +82,12 @@ import java.util.UUID;
                     @Override
                     public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                         Log.d(TAG, "Failed to connect to: " + serverUri + exception.toString());
+                        try {
+                            TimeUnit.SECONDS.sleep(2);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        connect();
                     }
                 });
             } catch (MqttException ex){

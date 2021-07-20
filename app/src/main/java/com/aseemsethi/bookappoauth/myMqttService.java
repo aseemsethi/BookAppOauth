@@ -96,7 +96,7 @@ public class myMqttService extends Service {
             Log.d(TAG, "MQTT Service is already connected");
             return START_STICKY;
         }
-            Log.d(TAG, "MQTT Service is NOT running");
+            Log.d(TAG, "restarting MQTT Service");
             try {
                 startMqtt();
                 running = true;
@@ -160,6 +160,7 @@ public class myMqttService extends Service {
             public void connectionLost(Throwable throwable) {
                 Log.d(TAG, "MQTT connection lost !!");
                 //onTaskRemoved(null);
+                mqttHelper.connect();
             }
 
             @RequiresApi(api = Build.VERSION_CODES.O)
