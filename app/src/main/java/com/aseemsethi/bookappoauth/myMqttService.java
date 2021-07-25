@@ -183,6 +183,11 @@ public class myMqttService extends Service {
                     //v1.setText(arrOfStr[2]);
                     //sendNotification(msg);
                 }
+                Intent intent = new Intent();
+                intent.putExtra("ID", arrOfStr[1].trim());
+                intent.putExtra("Status", arrOfStr[2].trim());
+                intent.setAction("Door");
+                sendBroadcast(intent);
             }
             @Override
             public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {

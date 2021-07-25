@@ -51,6 +51,7 @@ public class securityFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+        root = inflater.inflate(R.layout.security_fragment, container, false);
         pageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
         pageViewModel.getLoggedin().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
@@ -60,7 +61,20 @@ public class securityFragment extends Fragment {
                         Toast.LENGTH_LONG).show();
             }
         });
-        root = inflater.inflate(R.layout.security_fragment, container, false);
+        pageViewModel.getStatus().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(@Nullable String s) {
+                Log.d(TAG, "onChanged Status: " + s);
+                String[] arr = s.split(":", 2);
+                if ((arr[0].trim()).equals("4ffe1a")) {
+                    TextView v1 = (TextView) root.findViewById(R.id.sensorValue1);
+                    v1.setText(arr[1]);
+                } else {
+                    TextView v1 = (TextView) root.findViewById(R.id.sensorValue2);
+                    v1.setText(arr[1]);
+                }
+            }
+        });
         return root;
     }
 

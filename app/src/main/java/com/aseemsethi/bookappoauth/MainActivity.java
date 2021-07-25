@@ -8,10 +8,13 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 
+import com.aseemsethi.bookappoauth.ui.main.PageViewModel;
 import com.google.android.material.tabs.TabLayout;
 
 import androidx.annotation.RequiresApi;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -22,6 +25,8 @@ public class MainActivity extends AppCompatActivity {
     final String TAG = "BookAppOauth Main";
     private ActivityMainBinding binding;
     BroadcastReceiver myReceiverMqtt = null;
+    BroadcastReceiver myReceiverMqttStatus = null;
+    private PageViewModel pageViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        pageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
 
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager());
         ViewPager viewPager = binding.viewPager;
@@ -62,6 +68,20 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         registerReceiver(myReceiverMqtt, filter1);
+
+        IntentFilter filter2 = new IntentFilter("Door");
+        myReceiverMqttStatus = new BroadcastReceiver() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d(TAG, "registerServices: Door status:" +
+                        intent.getStringExtra("ID") + " : " +
+                        intent.getStringExtra("Status"));
+                pageViewModel.setStatus( intent.getStringExtra("ID") +
+                        ":" + intent.getStringExtra("Status"));
+            }
+        };
+        registerReceiver(myReceiverMqttStatus, filter2);
     }
     private boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
